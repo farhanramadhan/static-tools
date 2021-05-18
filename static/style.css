@@ -1,0 +1,34 @@
+#zoom {
+    width: 100%;
+    height: 100%;
+    transform-origin: 0px 0px;
+    transform: scale(1) translate(0px, 0px);
+    cursor: grab;
+  }
+div#zoom > img {
+    width: 100%;
+    height: auto;
+}
+
+#vulnerable-table {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#vulnerable-table td, #vulnerable-table th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#vulnerable-table tr:nth-child(even){background-color: #f2f2f2;}
+
+#vulnerable-table tr:hover {background-color: #ddd;}
+
+#vulnerable-table th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: rgb(42, 120, 151);
+    color: white;
+}

@@ -2,7 +2,7 @@ import os
 import glob
 import controller
 import json
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, url_for
 from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = './uploads'
@@ -25,7 +25,7 @@ def upload():
 def uploader():
     if request.method == 'POST':
         # delete old output file in static
-        files = glob.glob('./static/*.png')
+        files = glob.glob('./static/*.py.png')
         for f in files:
             print('tes : ',f)
             os.remove(f)
@@ -43,7 +43,9 @@ def uploader():
         # get image output from visualize path
         image = os.path.join(f.filename + '.png')
 
-        return render_template('analyze.html', user_image = image, vulnerable = json.dumps(convertToJSON(vulnerabilities)))
+        print(image)
+
+        return render_template('analyze.html', user_image = image, vulnerable = convertToJSON(vulnerabilities))
 
 def convertToJSON(vulnerabilities):
     result = []
