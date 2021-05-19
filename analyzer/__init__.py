@@ -1,4 +1,5 @@
 import transform
+from dictionary import password, session_create, session_delete, session_timeout, sql
 
 ## Function To Check Vulnerable
 def getAppNodeRid(cfg):
@@ -17,10 +18,8 @@ class Vulnerable:
 
 ### Session Timeout
 def isSessionHaveTimeout(cfg):
-    # Knowledge
-    checkSessionTimeout = ["permanent_session_lifetime", "PERMANENT_SESSION_LIFETIME"]
     for _, node in cfg.founder.cache.items():
-        for sessionTimeoutStatement in checkSessionTimeout:
+        for sessionTimeoutStatement in session_timeout.sessionTimeoutKeyword:
             if node.source().find(sessionTimeoutStatement) != -1:
                 return node.rid, True
     return -1, False
@@ -45,18 +44,16 @@ def drawGraphForSessionTimeout(sessionTimeout, aGraph, cfg, listOfVulnerable):
 
 ### Session Lifetime
 def addCreateSessionNode(cfg, sessionCreatedNode):
-    checkCreateSession = [('session[', ']')]
     for _, node in cfg.founder.cache.items():
         leftSideVariable = node.source().partition("=")[0]
-        for createSessionStatement in checkCreateSession:
+        for createSessionStatement in session_create.session_create:
             if leftSideVariable.find(createSessionStatement[0]) != -1 and leftSideVariable.find(createSessionStatement[1]) != -1:
                 sessionCreatedNode.append(node)
     return
 
 def addDeleteSessionNode(cfg, sessionDestroyedNode):
-    checkDestroySession = ['session.pop', 'session.clear']
     for _, node in cfg.founder.cache.items():
-        for destroySessionStatement in checkDestroySession:
+        for destroySessionStatement in session_delete.session_delete:
             if node.source().find(destroySessionStatement) != -1:
                 sessionDestroyedNode.append(node)
     return
@@ -112,7 +109,6 @@ def drawGraphForSessionLifetime(vulnerableSessionLifetime, sessionSecureLifetime
 
 ### Password Hash
 def isPasswordHashed(cfg, passwordInputNodes, passwordHashedNode, passwordNotHashedNode):
-    hashKeywords = ['hashlib', 'encrypt', 'hash', 'encode']
     # start from input user that contain password
     for passwordInputNode in passwordInputNodes.values():
         passwordHashed = False
@@ -129,7 +125,7 @@ def isPasswordHashed(cfg, passwordInputNodes, passwordHashedNode, passwordNotHas
             isNodeSQLStatementAndPassword = False
             while not isNodeSQLStatementAndPassword:
                 isNodeSQLStatementAndPassword, passwordHashedExecuted = isNodeHaveSQLStatementAndPassword(cfg.founder.cache.get(rid), passwordVariable, passwordHashedExecuted)
-                for hashKeyword in hashKeywords:
+                for hashKeyword in password.password_hashed:
                     if cfg.founder.cache.get(rid).source().find(hashKeyword) != -1:
                         passwordHashed = True
                         # check if password variable change name
@@ -139,6 +135,8 @@ def isPasswordHashed(cfg, passwordInputNodes, passwordHashedNode, passwordNotHas
                                 passwordVariable = passwordVariable.partition(' ')[0]
                 ## Access Curent Node
                 rid = rid + 1
+                if cfg.founder.cache.get(rid) is None:
+                    break
         
         # if password hashed and the hashed password executed in mysql statement
         if passwordHashedExecuted and passwordHashed:
@@ -149,8 +147,7 @@ def isPasswordHashed(cfg, passwordInputNodes, passwordHashedNode, passwordNotHas
     return
 
 def isNodeHaveSQLStatementAndPassword(cfgnode, passwordHashed, passwordHashedExecuted):
-    sqlStatements = ['SELECT', 'select', 'Select', 'UPDATE', 'update', 'Update', 'INSERT', 'insert', 'Insert', 'DELETE', 'Delete', 'delete']
-    for sqlStatement in sqlStatements:
+    for sqlStatement in sql.sql_statement:
         if cfgnode.source().find(sqlStatement) != -1 and cfgnode.source().find(passwordHashed) != -1:
             return (True, True)
         # end of function return (finish, sql statement executed or not with password hashed)
@@ -159,11 +156,9 @@ def isNodeHaveSQLStatementAndPassword(cfgnode, passwordHashed, passwordHashedExe
     return (False, False)
 
 def getPasswordInputNodeFromUser(cfg, passwordInputNodes):
-    passwordKeywords = ['password', 'pass', 'pwd']
-    userInputs = ['request']
     for _, node in cfg.founder.cache.items():
-        for passwordKeyword in passwordKeywords:
-            for userInput in userInputs:
+        for passwordKeyword in password.password_keyword_input:
+            for userInput in password.user_input:
                 if node.source().find(passwordKeyword) != -1 and node.source().find(userInput) != -1:
                     passwordInputNodes[node.rid] = node
     return
@@ -175,7 +170,6 @@ def drawGraphForPasswordHash(passwordHashed, passwordNotHashed, aGraph, cfg, lis
         # pylint: disable=no-member
         node.attr['color'] = 'green'
 
-    print(passwordNotHashed)
     # If Password Not Hashed Set give color red to App Node
     for passwordNotHash in passwordNotHashed:
         #AGraph node
@@ -225,7 +219,6 @@ def analyze(cfg, g, pythonfile):
 
     ### - Check Password Hash Or Not when Register eg. INSERT ..., hashlib.md5
     getPasswordInputNodeFromUser(cfg, passwordInputNodes)
-    # print("debug >>> ", passwordInputNodes)
     isPasswordHashed(cfg, passwordInputNodes, passwordHashedNode, passwordNotHashedNode)
 
     ### Change Color For Each Node That Vulnerable and Append to listOfVulnerable

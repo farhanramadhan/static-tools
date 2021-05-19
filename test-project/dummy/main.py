@@ -6,7 +6,7 @@ import hashlib
 app = Flask(__name__)
 app.secret_key = 'any random string'
 # SESSION TIMEOUT
-# app.permanent_session_lifetime = timedelta(minutes=30)
+app.permanent_session_lifetime = timedelta(minutes=30)
 
 mydb = mysql.connector.connect(
    host="localhost",
@@ -30,8 +30,8 @@ def login():
    if request.method == 'POST':
       username = request.form['username']
       password = request.form['password']
-      # PASSWORD HASHING
-      # password = hashlib.md5(password.encode()).hexdigest()
+      # PASSWORD NOT HASHED
+      password = hashlib.md5(password.encode()).hexdigest()
 
       mycursor.execute("SELECT username FROM users WHERE username = %s AND password = %s", (username, password))
 
@@ -71,7 +71,7 @@ def register():
 @app.route('/logout')
 def logout():
    # DELETE SESSION
-   # session.pop('username', None)
+   session.pop('username', None)
    return redirect(url_for('index'))
 
 if __name__ == '__main__':
