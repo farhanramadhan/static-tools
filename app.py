@@ -35,7 +35,7 @@ def uploader():
         f.save(os.path.join(app.config['UPLOAD_FOLDER'], f.filename))
 
         # analyze code
-        vulnerabilities = controller.analyze_code(f.filename)
+        vulnerabilities, exec_time, count_node = controller.analyze_code(f.filename)
 
         # remove uploded file
         os.remove(os.path.join(app.config['UPLOAD_FOLDER'], f.filename))
@@ -45,7 +45,7 @@ def uploader():
 
         print(image)
 
-        return render_template('analyze.html', user_image = image, vulnerable = convertToJSON(vulnerabilities))
+        return render_template('analyze.html', user_image = image, vulnerable = convertToJSON(vulnerabilities), exec_time = exec_time, count_node = count_node, file_name = f.filename)
 
 def convertToJSON(vulnerabilities):
     result = []

@@ -229,10 +229,12 @@ def analyze(cfg, g, pythonfile):
     ### Print to Terminal Vulnerable Lines
     printToTerminal(listOfVulnerable)
 
+    count_node = len(cfg.founder.cache.items())
+    print(transform.CFGNode.cache)
     
     # reset CFG Node Static Variable
     transform.CFGNode.registry = 0
     transform.CFGNode.cache = {}
     transform.CFGNode.stack = []
 
-    return listOfVulnerable
+    return listOfVulnerable, count_node
