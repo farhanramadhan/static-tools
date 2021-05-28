@@ -58,6 +58,13 @@ def addDeleteSessionNode(cfg, sessionDestroyedNode):
                 sessionDestroyedNode.append(node)
     return
 
+def isClearSessionNodeExist(cfg):
+    for _, node in cfg.founder.cache.items():
+        for clearSessionStatement in session_delete.session_clear:
+            if node.source().find(clearSessionStatement) != -1:
+                return True
+    return False
+
 def checkSessionLifetime(cfg, sessionCreatedNode, sessionDestroyedNode):
     parameter_exp = ['\'', '\"']
     createdSession = {}
@@ -65,29 +72,30 @@ def checkSessionLifetime(cfg, sessionCreatedNode, sessionDestroyedNode):
     vulnerableSessionLifetime = []
     sessionSecureLifetime = []
 
-    # get session created
-    for node in sessionCreatedNode:
-        for exp in parameter_exp:
-            front = (node.source().find(exp))
-            back = (node.source().find(exp, front+1))
-            if front > -1:
-                createdSession[node.source()[front+1:back]] = node
-    
-    # get session delete
-    for node in sessionDestroyedNode:
-        for exp in parameter_exp:
-            front = (node.source().find(exp))
-            back = (node.source().find(exp, front+1))
-            if front > -1:
-                deletedSession[(node.source()[front+1:back])] = node
+    if not isClearSessionNodeExist(cfg):
+        # get session created
+        for node in sessionCreatedNode:
+            for exp in parameter_exp:
+                front = (node.source().find(exp))
+                back = (node.source().find(exp, front+1))
+                if front > -1:
+                    createdSession[node.source()[front+1:back]] = node
+        
+        # get session delete
+        for node in sessionDestroyedNode:
+            for exp in parameter_exp:
+                front = (node.source().find(exp))
+                back = (node.source().find(exp, front+1))
+                if front > -1:
+                    deletedSession[(node.source()[front+1:back])] = node
 
-    # check per session whether the session destroyed or not
-    for key in createdSession.keys():
-        if deletedSession.get(key) is None:
-            vulnerableSessionLifetime.append(createdSession.get(key))
-        else:
-            sessionSecureLifetime.append(createdSession.get(key))
-            sessionSecureLifetime.append(deletedSession.get(key))
+        # check per session whether the session destroyed or not
+        for key in createdSession.keys():
+            if deletedSession.get(key) is None:
+                vulnerableSessionLifetime.append(createdSession.get(key))
+            else:
+                sessionSecureLifetime.append(createdSession.get(key))
+                sessionSecureLifetime.append(deletedSession.get(key))
 
     return vulnerableSessionLifetime, sessionSecureLifetime
 
