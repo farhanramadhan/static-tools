@@ -221,16 +221,13 @@ def analyze(cfg, g, pythonfile):
     ### - Check Session Lifetime
     ####   -> Check Create Session eg. session['username'] = ...
     addCreateSessionNode(cfg, sessionCreatedNode)
-    print('debug create >>',sessionCreatedNode)
     ####   -> Check Session Terminated Or Not eg. session.pop('username', None)
     addDeleteSessionNode(cfg, sessionDestroyedNode)
-    print('debug >>',sessionDestroyedNode)
     ####   -> Check Session Lifetime
     vulnerableSessionLifetime, sessionSecureLifetime = checkSessionLifetime(cfg, sessionCreatedNode, sessionDestroyedNode)
 
     ### - Check Password Hash Or Not when Register eg. INSERT ..., hashlib.md5
     getPasswordInputNodeFromUser(cfg, passwordInputNodes)
-    print('debug password input >>',passwordInputNodes)
     isPasswordHashed(cfg, passwordInputNodes, passwordHashedNode, passwordNotHashedNode)
 
     ### Change Color For Each Node That Vulnerable and Append to listOfVulnerable
