@@ -46,9 +46,10 @@ def drawGraphForSessionTimeout(sessionTimeout, aGraph, cfg, listOfVulnerable):
 def addCreateSessionNode(cfg, sessionCreatedNode):
     for _, node in cfg.founder.cache.items():
         leftSideVariable = node.source().partition("=")[0]
-        for createSessionStatement in session_create.session_create:
-            if leftSideVariable.find(createSessionStatement[0]) != -1 and leftSideVariable.find(createSessionStatement[1]) != -1:
-                sessionCreatedNode.append(node)
+        if node.source().find("=") != -1:
+            for createSessionStatement in session_create.session_create:
+                if leftSideVariable.find(createSessionStatement[0]) != -1 and leftSideVariable.find(createSessionStatement[1]) != -1 and node.source().find("!") == -1:
+                    sessionCreatedNode.append(node)
     return
 
 def addDeleteSessionNode(cfg, sessionDestroyedNode):
@@ -167,7 +168,7 @@ def getPasswordInputNodeFromUser(cfg, passwordInputNodes):
     for _, node in cfg.founder.cache.items():
         for passwordKeyword in password.password_keyword_input:
             for userInput in password.user_input:
-                if node.source().find(passwordKeyword) != -1 and node.source().find(userInput) != -1:
+                if node.source().find(passwordKeyword) != -1 and node.source().find(userInput) != -1 and node.source().find('_if') == -1:
                     passwordInputNodes[node.rid] = node
     return
 
@@ -220,13 +221,16 @@ def analyze(cfg, g, pythonfile):
     ### - Check Session Lifetime
     ####   -> Check Create Session eg. session['username'] = ...
     addCreateSessionNode(cfg, sessionCreatedNode)
+    print('debug create >>',sessionCreatedNode)
     ####   -> Check Session Terminated Or Not eg. session.pop('username', None)
     addDeleteSessionNode(cfg, sessionDestroyedNode)
+    print('debug >>',sessionDestroyedNode)
     ####   -> Check Session Lifetime
     vulnerableSessionLifetime, sessionSecureLifetime = checkSessionLifetime(cfg, sessionCreatedNode, sessionDestroyedNode)
 
     ### - Check Password Hash Or Not when Register eg. INSERT ..., hashlib.md5
     getPasswordInputNodeFromUser(cfg, passwordInputNodes)
+    print('debug password input >>',passwordInputNodes)
     isPasswordHashed(cfg, passwordInputNodes, passwordHashedNode, passwordNotHashedNode)
 
     ### Change Color For Each Node That Vulnerable and Append to listOfVulnerable
@@ -238,7 +242,7 @@ def analyze(cfg, g, pythonfile):
     printToTerminal(listOfVulnerable)
 
     count_node = len(cfg.founder.cache.items())
-    print(transform.CFGNode.cache)
+    # print(transform.CFGNode.cache)
     
     # reset CFG Node Static Variable
     transform.CFGNode.registry = 0
