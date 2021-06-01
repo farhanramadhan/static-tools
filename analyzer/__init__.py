@@ -147,8 +147,8 @@ def isPasswordHashed(cfg, passwordInputNodes, passwordHashedNode, passwordNotHas
                 if cfg.founder.cache.get(rid) is None:
                     break
         
-        # if password hashed and the hashed password executed in mysql statement
-        if passwordHashedExecuted and passwordHashed:
+        # if password hashed
+        if passwordHashed:
             passwordHashedNode.append(passwordInputNode)
         else:
             passwordNotHashedNode.append(passwordInputNode)
