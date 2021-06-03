@@ -242,6 +242,10 @@ class PyCFG:
 
         return g1 + g2
 
+    def on_delete(self, node, myparents):
+        p = [CFGNode(parents=myparents, ast=node)]
+        return self.walk(node.targets, p)
+
     def on_binop(self, node, myparents):
         left = self.walk(node.left, myparents)
         right = self.walk(node.right, left)
